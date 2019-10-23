@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">BookCase</string>
+    <string-array name="Books">
+        <item>The Great Catsby</item>
+        <item>Bob The Builder</item>
+        <item>Larry and The Big Boom</item>
+        <item>Crocs are not Fashion</item>
+    </string-array>
+</resources>
