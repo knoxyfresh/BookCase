@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,12 +27,14 @@ public class MainActivity extends AppCompatActivity {
         }else{
 
         }
-        fm = getSupportFragmentManager();
-        String[] Books = getResources().getStringArray(R.array.Books);
-        //books
-        //ViewPager pager = findViewById(R.id.viewPager);
-        detailsfrag = detailFragment.newInstance(getResources().getStringArray(R.array.Books));
-        fm.beginTransaction().replace(R.id.frameLayout,detailsfrag).commit();
+//        fm = getSupportFragmentManager();
+//        String[] Books = getResources().getStringArray(R.array.Books);
+//        //books
+//        //ViewPager pager = findViewById(R.id.viewPager);
+//        detailsfrag = detailFragment.newInstance(getResources().getStringArray(R.array.Books));
+//        fm.beginTransaction().replace(R.id.frameLayout,detailsfrag).commit();
+        Intent myIntent = new Intent(MainActivity.this, pageActivity.class);
+        MainActivity.this.startActivity(myIntent);
     }
 
 }
