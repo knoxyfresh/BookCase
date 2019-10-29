@@ -1,7 +1,9 @@
 package temple.edu.bookcase;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import android.content.Intent;
@@ -15,7 +17,7 @@ import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
-    detailFragment detailsfrag;
+    detailFragment[] deetfrags;
     FragmentManager fm;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,14 +29,18 @@ public class MainActivity extends AppCompatActivity {
         }else{
 
         }
-//        fm = getSupportFragmentManager();
-//        String[] Books = getResources().getStringArray(R.array.Books);
-//        //books
-//        //ViewPager pager = findViewById(R.id.viewPager);
+        fm = getSupportFragmentManager();
+        String[] Books = getResources().getStringArray(R.array.Books);
+        //books
+//        ViewPager pager = findViewById(R.id.viewPager);
+//
 //        detailsfrag = detailFragment.newInstance(getResources().getStringArray(R.array.Books));
 //        fm.beginTransaction().replace(R.id.frameLayout,detailsfrag).commit();
-        Intent myIntent = new Intent(MainActivity.this, pageActivity.class);
-        MainActivity.this.startActivity(myIntent);
+        Intent intent = new Intent(MainActivity.this,pageActivity.class);
+        MainActivity.this.startActivity(intent);
+
+
     }
+
 
 }

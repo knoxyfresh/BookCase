@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -15,47 +16,51 @@ public class pageActivity extends AppCompatActivity {
     FragmentManager fm;
     ViewPager vp;
     ArrayList<detailFragment> myfragments = new ArrayList<detailFragment>();
+    FragmentPagerAdapter adapterViewPager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_page);
-        fm = getSupportFragmentManager();
-        vp = findViewById(R.id.viewPager);
-        detailFragment myfrag=new detailFragment();
-        String[] arr= {"one","one"};
-        myfragments.add(myfrag.newInstance(arr));
-        myfrag=new detailFragment();
-        String[] arr2= {"two","two"};
-        myfragments.add(myfrag.newInstance(arr2));
-        myfrag=new detailFragment();
-        String[] arr3= {"three","three"};
-        myfragments.add(myfrag.newInstance(arr3));
-        myViewPagerAdapter adpt = new myViewPagerAdapter(fm, myfragments);
-        vp.setAdapter(adpt);
-        //set adapter full of fragments
-//        set adapter of the viewpager
-//      myfragments.Add(.newinstance etc);
+        ViewPager vpPager = (ViewPager) findViewById(R.id.viewPager);
+        adapterViewPager = new MyPagerAdapter(getSupportFragmentManager());
+        vpPager.setAdapter(adapterViewPager);
 
     }
 
-    class myViewPagerAdapter extends FragmentPagerAdapter{
-        ArrayList<detailFragment> fragments;
-        public myViewPagerAdapter(FragmentManager fm, ArrayList<detailFragment> frags) {
-            super(fm);
-            this.fragments = frags;
+    public static class MyPagerAdapter extends FragmentPagerAdapter {
+        private static int NUM_ITEMS = 3;
+
+        public MyPagerAdapter(FragmentManager fragmentManager) {
+            super(fragmentManager);
         }
 
-        @NonNull
-        @Override
-        public Fragment getItem(int position) {
-            return null;
-        }
-
+        // Returns total number of pages
         @Override
         public int getCount() {
-            return 0;
+            return NUM_ITEMS;
         }
-//        ArrayList<MyFragment>
+
+        // Returns the fragment to display for that page
+        @Override
+        public Fragment getItem(int position) {
+            switch (position) {
+                case 0: // Fragment # 0 - This will show FirstFragment
+                    return FirstFragment.newInstance(0, "Page # 1");
+                case 1: // Fragment # 0 - This will show FirstFragment different title
+                    return FirstFragment.newInstance(1, "Page # 2");
+                case 2: // Fragment # 1 - This will show SecondFragment
+                    return FirstFragment.newInstance(2, "Page # 3");
+                default:
+                    return null;
+            }
+        }
+
+        // Returns the page title for the top indicator
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return "Page " + position;
+        }
 
     }
+
 }
