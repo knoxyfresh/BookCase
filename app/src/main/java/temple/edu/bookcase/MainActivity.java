@@ -4,34 +4,59 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements BookChooserFragment.OnFragmentInteractionListener {
 
     FragmentManager fm;
     ViewPager vp;
     ArrayList<BookChooserFragment> myfragments = new ArrayList<BookChooserFragment>();
+    String[] books;
     FragmentPagerAdapter adapterViewPager;
+    BookDetailsFragment detailsref;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        vp = findViewById(R.id.viewPagerMain);
-        ArrayList<String> strings = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.Books)));
+        super.onCreate(savedInstanceState);
+
+        int orientation = getResources().getConfiguration().orientation;
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            books = getResources().getStringArray(R.array.Books);
+            // In landscape
+            detailsref = BookDetailsFragment.newInstance(books[0]);
+            final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            BookChooserFragment myfrag = BookChooserFragment.newInstance(getResources().getStringArray(R.array.Books));
+            transaction.replace(R.id.selectFrameLand, myfrag);
+            transaction.replace(R.id.deatilsFrameLand, detailsref);
+            transaction.addToBackStack(null);
+            transaction.commit();
+        } else {
+            // In portrait
+            vp = findViewById(R.id.viewPagerMain);
+            ArrayList<String> strings = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.Books)));
 //        adapterViewPager = new this.MyPagerAdapter(getSupportFragmentManager(), strings);
-        adapterViewPager = new MainActivity.MyPagerAdapter(getSupportFragmentManager(), strings);
-        vp.setAdapter(adapterViewPager);
+            adapterViewPager = new MainActivity.MyPagerAdapter(getSupportFragmentManager(), strings);
+            vp.setAdapter(adapterViewPager);
+        }
 
     }
+
+    @Override
+    public void ChooseItem(int i) {
+//        Fragment myfrag = getSupportFragmentManager().findFragmentById(R.id.fragmentDetails);
+//        ((BookDetailsFragment)myfrag).displayBook(books[i]);
+        detailsref.displayBook(books[i]);
+        //vp.setCurrentItem(i, false);
+    }
+
 
     public static class MyPagerAdapter extends FragmentPagerAdapter {
         private int NUM_ITEMS;
@@ -40,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         public MyPagerAdapter(FragmentManager fragmentManager, ArrayList<String> strings) {
             super(fragmentManager);
             NUM_ITEMS = strings.size();
-            this.strings=strings;
+            this.strings = strings;
         }
 
         // Returns total number of pages
@@ -52,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         // Returns the fragment to display for that page
         @Override
         public Fragment getItem(int position) {
-            if(position<NUM_ITEMS)
+            if (position < NUM_ITEMS)
                 return BookDetailsFragment.newInstance(strings.get(position));
             else return null;
 //            switch (position) {

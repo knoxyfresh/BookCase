@@ -21,7 +21,6 @@ import android.widget.TextView;
 public class BookDetailsFragment extends Fragment {
     // Store instance variables
     private String title;
-    private int page;
 
     // newInstance constructor for creating fragment with arguments
     public static BookDetailsFragment newInstance(String title) {
@@ -37,6 +36,11 @@ public class BookDetailsFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         title = getArguments().getString("someTitle");
+    }
+
+    public void displayBook(String title){
+        TextView tvLabel = getView().findViewById(R.id.tvLabel);
+        tvLabel.setText(title);
     }
 
     // Inflate the view for the fragment based on layout XML
