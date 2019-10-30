@@ -9,6 +9,8 @@ import androidx.viewpager.widget.ViewPager;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,7 +30,10 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         super.onCreate(savedInstanceState);
 
         int orientation = getResources().getConfiguration().orientation;
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+
+        boolean istablet = (getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
+        Log.wtf("OY","Tablert: "+istablet);
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE || istablet) {
             books = getResources().getStringArray(R.array.Books);
             // In landscape
             detailsref = BookDetailsFragment.newInstance(books[0]);
