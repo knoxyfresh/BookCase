@@ -11,18 +11,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link detailFragment.OnFragmentInteractionListener} interface
+ * {@link BookChooserFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link detailFragment#newInstance} factory method to
+ * Use the {@link BookChooserFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class detailFragment extends Fragment {
+public class BookChooserFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "Books";
@@ -33,7 +32,7 @@ public class detailFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
-    public detailFragment() {
+    public BookChooserFragment() {
         // Required empty public constructor
     }
 
@@ -41,11 +40,11 @@ public class detailFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @return A new instance of fragment detailFragment.
+     * @return A new instance of fragment BookChooserFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static detailFragment newInstance(String[] books) {
-        detailFragment fragment = new detailFragment();
+    public static BookChooserFragment newInstance(String[] books) {
+        BookChooserFragment fragment = new BookChooserFragment();
         Bundle args = new Bundle();
         args.putStringArray(ARG_PARAM1, books);
         fragment.setArguments(args);

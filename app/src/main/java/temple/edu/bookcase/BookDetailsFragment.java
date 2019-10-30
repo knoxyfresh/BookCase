@@ -1,7 +1,5 @@
 package temple.edu.bookcase;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -17,19 +15,18 @@ import android.widget.TextView;
  * Activities that contain this fragment must implement the
 
  * to handle interaction events.
- * Use the {@link FirstFragment#newInstance} factory method to
+ * Use the {@link BookDetailsFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class FirstFragment extends Fragment {
+public class BookDetailsFragment extends Fragment {
     // Store instance variables
     private String title;
     private int page;
 
     // newInstance constructor for creating fragment with arguments
-    public static FirstFragment newInstance(int page, String title) {
-        FirstFragment fragmentFirst = new FirstFragment();
+    public static BookDetailsFragment newInstance(String title) {
+        BookDetailsFragment fragmentFirst = new BookDetailsFragment();
         Bundle args = new Bundle();
-        args.putInt("someInt", page);
         args.putString("someTitle", title);
         fragmentFirst.setArguments(args);
         return fragmentFirst;
@@ -39,7 +36,6 @@ public class FirstFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        page = getArguments().getInt("someInt", 0);
         title = getArguments().getString("someTitle");
     }
 
@@ -49,7 +45,7 @@ public class FirstFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_first, container, false);
         TextView tvLabel = (TextView) view.findViewById(R.id.tvLabel);
-        tvLabel.setText(page + " -- " + title);
+        tvLabel.setText(title);
         return view;
     }
 }

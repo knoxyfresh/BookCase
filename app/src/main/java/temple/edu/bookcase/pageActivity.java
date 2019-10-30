@@ -1,6 +1,5 @@
 package temple.edu.bookcase;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -8,30 +7,34 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class pageActivity extends AppCompatActivity {
     FragmentManager fm;
     ViewPager vp;
-    ArrayList<detailFragment> myfragments = new ArrayList<detailFragment>();
+    ArrayList<BookChooserFragment> myfragments = new ArrayList<BookChooserFragment>();
     FragmentPagerAdapter adapterViewPager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_page);
         ViewPager vpPager = (ViewPager) findViewById(R.id.viewPager);
-        adapterViewPager = new MyPagerAdapter(getSupportFragmentManager());
+        ArrayList<String> strings = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.Books)));
+        adapterViewPager = new MyPagerAdapter(getSupportFragmentManager(), strings);
         vpPager.setAdapter(adapterViewPager);
 
     }
 
     public static class MyPagerAdapter extends FragmentPagerAdapter {
-        private static int NUM_ITEMS = 3;
+        private int NUM_ITEMS;
+        private ArrayList<String> strings;
 
-        public MyPagerAdapter(FragmentManager fragmentManager) {
+        public MyPagerAdapter(FragmentManager fragmentManager, ArrayList<String> strings) {
             super(fragmentManager);
+            NUM_ITEMS = strings.size();
+            this.strings=strings;
         }
 
         // Returns total number of pages
@@ -43,16 +46,19 @@ public class pageActivity extends AppCompatActivity {
         // Returns the fragment to display for that page
         @Override
         public Fragment getItem(int position) {
-            switch (position) {
-                case 0: // Fragment # 0 - This will show FirstFragment
-                    return FirstFragment.newInstance(0, "Page # 1");
-                case 1: // Fragment # 0 - This will show FirstFragment different title
-                    return FirstFragment.newInstance(1, "Page # 2");
-                case 2: // Fragment # 1 - This will show SecondFragment
-                    return FirstFragment.newInstance(2, "Page # 3");
-                default:
-                    return null;
-            }
+            if(position<NUM_ITEMS)
+            return BookDetailsFragment.newInstance(strings.get(position));
+            else return null;
+//            switch (position) {
+//                case 0: // Fragment # 0 - This will show BookDetailsFragment
+//                    return BookDetailsFragment.newInstance(0, "Page # 1");
+//                case 1: // Fragment # 0 - This will show BookDetailsFragment different title
+//                    return BookDetailsFragment.newInstance(1, "Page # 2");
+//                case 2: // Fragment # 1 - This will show SecondFragment
+//                    return BookDetailsFragment.newInstance(2, "Page # 3");
+//                default:
+//                    return null;
+//            }
         }
 
         // Returns the page title for the top indicator
