@@ -20,13 +20,13 @@ import android.widget.TextView;
  */
 public class BookDetailsFragment extends Fragment {
     // Store instance variables
-    private String title;
+    private Book mybook;
 
     // newInstance constructor for creating fragment with arguments
-    public static BookDetailsFragment newInstance(String title) {
+    public static BookDetailsFragment newInstance(Book book) {
         BookDetailsFragment fragmentFirst = new BookDetailsFragment();
         Bundle args = new Bundle();
-        args.putString("someTitle", title);
+        args.putParcelable("book",book);
         fragmentFirst.setArguments(args);
         return fragmentFirst;
     }
@@ -35,7 +35,8 @@ public class BookDetailsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        title = getArguments().getString("someTitle");
+
+        mybook = savedInstanceState.getParcelable("book");
     }
 
     public void displayBook(String title){

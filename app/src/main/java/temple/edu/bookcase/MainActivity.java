@@ -1,5 +1,6 @@
 package temple.edu.bookcase;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -7,11 +8,23 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.Context;
 import android.content.res.Configuration;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -21,8 +34,38 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     ViewPager vp;
     ArrayList<BookChooserFragment> myfragments = new ArrayList<BookChooserFragment>();
     String[] books;
+    ArrayList<Book> mybooks = new ArrayList<Book>();
     FragmentPagerAdapter adapterViewPager;
     BookDetailsFragment detailsref;
+
+
+
+    Handler loadBooks = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(@NonNull Message message) {
+                    Log.wtf("results",message.obj.toString());
+            //Toast.makeText(MainActivity.this,(String)message.obj,Toast.LENGTH_LONG);
+            try{
+            JSONArray jarrary = new JSONArray(message.obj.toString());
+            for(int i=0;i<jarrary.length();i++){
+                Book book = new Book();
+                JSONObject obj = jarrary.getJSONObject(i);
+                book.id=obj.getInt("book_id");
+                book.title=obj.getString("title");
+                book.author=obj.getString("author");
+                book.duration=obj.getInt("duration");
+                book.published=obj.getInt("published");
+                book.coverURL = new URL(obj.getString("cover_url"));
+                mybooks.add(book);
+                Log.wtf("results",book.toString());
+            }
+            }catch(Exception ex){
+                Log.wtf("results","PROBLEM OF "+ex.toString());
+
+            }
+            return false;
+        }
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +73,33 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         super.onCreate(savedInstanceState);
 
         int orientation = getResources().getConfiguration().orientation;
+
+        Thread loadContent = new Thread(){
+
+            @Override
+            public void run() {
+                URL url = null;
+                try{
+                    url = new URL("https://kamorris.com/lab/audlib/booksearch.php");
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+                    String response = "", tmpResponse;
+                    tmpResponse = reader.readLine();
+                    while(tmpResponse!=null){
+                        response+=tmpResponse;
+                        tmpResponse = reader.readLine();
+                    }
+                    Message msg = Message.obtain();
+                    //Toast.makeText(MainActivity.this,"HI we have: "+response,Toast.LENGTH_LONG);
+                    msg.obj=response;
+                    loadBooks.sendMessage(msg);
+                }catch(Exception ex){
+                    //Toast.makeText(MainActivity.this,"WE HAVE A PROBLEM HOY HOY HOYHOYHOYHOYHOYHYOYH!",Toast.LENGTH_LONG);
+                    Log.wtf("results","NOPE!");
+
+                }
+            }
+        };
+        loadContent.start();
 
         boolean istablet = (getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
         Log.wtf("OY","Tablert: "+istablet);
@@ -54,6 +124,12 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 
     }
 
+
+    public boolean areWeConnected() {
+        ConnectivityManager cmgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        return cmgr.getActiveNetworkInfo() != null && cmgr.getActiveNetworkInfo().isConnected();
+    }
+
     @Override
     public void ChooseItem(int i) {
 //        Fragment myfrag = getSupportFragmentManager().findFragmentById(R.id.fragmentDetails);
@@ -61,6 +137,8 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         detailsref.displayBook(books[i]);
         //vp.setCurrentItem(i, false);
     }
+
+
 
 
     public static class MyPagerAdapter extends FragmentPagerAdapter {
@@ -104,6 +182,8 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         }
 
     }
+
+
 
 
 }
