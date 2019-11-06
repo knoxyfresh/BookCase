@@ -7,7 +7,10 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 
 /**
@@ -49,8 +52,13 @@ public class BookDetailsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_first, container, false);
-        TextView tvLabel = (TextView) view.findViewById(R.id.tvLabel);
-        tvLabel.setText(title);
+        ImageView img = (ImageView) view.findViewById(R.id.imageViewCover);
+        TextView title = (TextView) view.findViewById(R.id.textViewBookID);
+        TextView author = (TextView) view.findViewById(R.id.textViewAuthor);
+        TextView id = (TextView) view.findViewById(R.id.textViewBookID);
+
+        Book mybook = savedInstanceState.getParcelable("book");
+        Picasso.get().load(mybook.coverURL.toString()).into(img);
         return view;
     }
 }
