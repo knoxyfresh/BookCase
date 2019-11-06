@@ -46,9 +46,10 @@ public class pageActivity extends AppCompatActivity {
         // Returns the fragment to display for that page
         @Override
         public Fragment getItem(int position) {
-            if(position<NUM_ITEMS)
-            return BookDetailsFragment.newInstance(strings.get(position));
-            else return null;
+//            if(position<NUM_ITEMS)
+//            return BookDetailsFragment.newInstance(strings.get(position));
+//            else return null;
+            return null;
 //            switch (position) {
 //                case 0: // Fragment # 0 - This will show BookDetailsFragment
 //                    return BookDetailsFragment.newInstance(0, "Page # 1");

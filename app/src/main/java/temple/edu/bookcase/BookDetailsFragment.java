@@ -38,8 +38,7 @@ public class BookDetailsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mybook = savedInstanceState.getParcelable("book");
+        mybook = getArguments().getParcelable("book");
     }
 
     public void displayBook(String title){
@@ -51,13 +50,13 @@ public class BookDetailsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_first, container, false);
+        View view = inflater.inflate(R.layout.fragment_detail2, container, false);
         ImageView img = (ImageView) view.findViewById(R.id.imageViewCover);
         TextView title = (TextView) view.findViewById(R.id.textViewBookID);
         TextView author = (TextView) view.findViewById(R.id.textViewAuthor);
         TextView id = (TextView) view.findViewById(R.id.textViewBookID);
 
-        Book mybook = savedInstanceState.getParcelable("book");
+        Book mybook = getArguments().getParcelable("book");
         Picasso.get().load(mybook.coverURL.toString()).into(img);
         return view;
     }

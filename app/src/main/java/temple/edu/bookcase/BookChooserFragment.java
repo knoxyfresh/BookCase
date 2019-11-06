@@ -66,17 +66,17 @@ public class BookChooserFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_detail2, container, false);
-        ListView lv = v.findViewById(R.id.listView);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                mListener.ChooseItem(i);
-
-            }
-        });
-        String[] values = getArguments().getStringArray(ARG_PARAM1);
-        ArrayAdapter<String> strings = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1,values);
-        lv.setAdapter(strings);
+//        //ListView lv = v.findViewById(R.id.listView);
+//        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+//            @Override
+//            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+//                mListener.ChooseItem(i);
+//
+//            }
+//        });
+//        String[] values = getArguments().getStringArray(ARG_PARAM1);
+//        ArrayAdapter<String> strings = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1,values);
+//        lv.setAdapter(strings);
         return v;
     }
 

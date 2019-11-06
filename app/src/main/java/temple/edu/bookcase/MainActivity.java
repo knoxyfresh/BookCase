@@ -57,8 +57,14 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
                 book.published=obj.getInt("published");
                 book.coverURL = new URL(obj.getString("cover_url"));
                 mybooks.add(book);
-                Log.wtf("results",book.toString());
+                Log.wtf("results",mybooks.get(0).toString());
             }
+
+                BookDetailsFragment myfrag = BookDetailsFragment.newInstance(mybooks.get(0));
+                final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.mainlayout,myfrag);
+                transaction.commit();
+
             }catch(Exception ex){
                 Log.wtf("results","PROBLEM OF "+ex.toString());
 
@@ -101,26 +107,26 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         };
         loadContent.start();
 
-        boolean istablet = (getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
-        Log.wtf("OY","Tablert: "+istablet);
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE || istablet) {
-            books = getResources().getStringArray(R.array.Books);
-            // In landscape
-            detailsref = BookDetailsFragment.newInstance(books[0]);
-            final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            BookChooserFragment myfrag = BookChooserFragment.newInstance(getResources().getStringArray(R.array.Books));
-            transaction.replace(R.id.selectFrameLand, myfrag);
-            transaction.replace(R.id.deatilsFrameLand, detailsref);
-            transaction.addToBackStack(null);
-            transaction.commit();
-        } else {
-            // In portrait
-            vp = findViewById(R.id.viewPagerMain);
-            ArrayList<String> strings = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.Books)));
-//        adapterViewPager = new this.MyPagerAdapter(getSupportFragmentManager(), strings);
-            adapterViewPager = new MainActivity.MyPagerAdapter(getSupportFragmentManager(), strings);
-            vp.setAdapter(adapterViewPager);
-        }
+//        boolean istablet = (getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
+//        Log.wtf("OY","Tablert: "+istablet);
+//        if (orientation == Configuration.ORIENTATION_LANDSCAPE || istablet) {
+//            books = getResources().getStringArray(R.array.Books);
+//            // In landscape
+//            detailsref = BookDetailsFragment.newInstance(books[0]);
+//            final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+//            BookChooserFragment myfrag = BookChooserFragment.newInstance(getResources().getStringArray(R.array.Books));
+//            transaction.replace(R.id.selectFrameLand, myfrag);
+//            transaction.replace(R.id.deatilsFrameLand, detailsref);
+//            transaction.addToBackStack(null);
+//            transaction.commit();
+//        } else {
+//            // In portrait
+//            vp = findViewById(R.id.viewPagerMain);
+//            ArrayList<String> strings = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.Books)));
+////        adapterViewPager = new this.MyPagerAdapter(getSupportFragmentManager(), strings);
+//            adapterViewPager = new MainActivity.MyPagerAdapter(getSupportFragmentManager(), strings);
+//            vp.setAdapter(adapterViewPager);
+//        }
 
     }
 
@@ -141,47 +147,47 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 
 
 
-    public static class MyPagerAdapter extends FragmentPagerAdapter {
-        private int NUM_ITEMS;
-        private ArrayList<String> strings;
-
-        public MyPagerAdapter(FragmentManager fragmentManager, ArrayList<String> strings) {
-            super(fragmentManager);
-            NUM_ITEMS = strings.size();
-            this.strings = strings;
-        }
-
-        // Returns total number of pages
-        @Override
-        public int getCount() {
-            return NUM_ITEMS;
-        }
-
-        // Returns the fragment to display for that page
-        @Override
-        public Fragment getItem(int position) {
-            if (position < NUM_ITEMS)
-                return BookDetailsFragment.newInstance(strings.get(position));
-            else return null;
-//            switch (position) {
-//                case 0: // Fragment # 0 - This will show BookDetailsFragment
-//                    return BookDetailsFragment.newInstance(0, "Page # 1");
-//                case 1: // Fragment # 0 - This will show BookDetailsFragment different title
-//                    return BookDetailsFragment.newInstance(1, "Page # 2");
-//                case 2: // Fragment # 1 - This will show SecondFragment
-//                    return BookDetailsFragment.newInstance(2, "Page # 3");
-//                default:
-//                    return null;
-//            }
-        }
-
-        // Returns the page title for the top indicator
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return "Page " + position;
-        }
-
-    }
+//    public static class MyPagerAdapter extends FragmentPagerAdapter {
+//        private int NUM_ITEMS;
+//        private ArrayList<String> strings;
+//
+//        public MyPagerAdapter(FragmentManager fragmentManager, ArrayList<String> strings) {
+//            super(fragmentManager);
+//            NUM_ITEMS = strings.size();
+//            this.strings = strings;
+//        }
+//
+//        // Returns total number of pages
+//        @Override
+//        public int getCount() {
+//            return NUM_ITEMS;
+//        }
+//
+//        // Returns the fragment to display for that page
+//        @Override
+//        public Fragment getItem(int position) {
+//            if (position < NUM_ITEMS)
+//                return BookDetailsFragment.newInstance(strings.get(position));
+//            else return null;
+////            switch (position) {
+////                case 0: // Fragment # 0 - This will show BookDetailsFragment
+////                    return BookDetailsFragment.newInstance(0, "Page # 1");
+////                case 1: // Fragment # 0 - This will show BookDetailsFragment different title
+////                    return BookDetailsFragment.newInstance(1, "Page # 2");
+////                case 2: // Fragment # 1 - This will show SecondFragment
+////                    return BookDetailsFragment.newInstance(2, "Page # 3");
+////                default:
+////                    return null;
+////            }
+//        }
+//
+//        // Returns the page title for the top indicator
+//        @Override
+//        public CharSequence getPageTitle(int position) {
+//            return "Page " + position;
+//        }
+//
+//    }
 
 
 

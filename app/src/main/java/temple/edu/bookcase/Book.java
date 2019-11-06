@@ -13,6 +13,8 @@ public class Book implements Parcelable {
     int duration;
     URL coverURL;
 
+    public Book(){}
+
     protected Book(Parcel in) {
         id = in.readInt();
         title = in.readString();
