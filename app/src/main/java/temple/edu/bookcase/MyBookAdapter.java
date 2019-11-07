@@ -19,11 +19,14 @@ public class MyBookAdapter extends FragmentPagerAdapter {
     @NonNull
     @Override
     public Fragment getItem(int position) {
+        if(position>=0 && position<books.size()){
+            return BookDetailsFragment.newInstance(books.get(position));
+        }
         return null;
     }
 
     @Override
     public int getCount() {
-        return 0;
+        return books.size();
     }
 }

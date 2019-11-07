@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Window;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -57,13 +58,14 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
                 book.published=obj.getInt("published");
                 book.coverURL = new URL(obj.getString("cover_url"));
                 mybooks.add(book);
-                Log.wtf("results",mybooks.get(0).toString());
+                Log.wtf("results",mybooks.get(i).toString());
             }
+            makeViewPager(mybooks);
 
-                BookDetailsFragment myfrag = BookDetailsFragment.newInstance(mybooks.get(0));
-                final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.mainlayout,myfrag);
-                transaction.commit();
+//                BookDetailsFragment myfrag = BookDetailsFragment.newInstance(mybooks.get(0));
+//                final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+//                transaction.replace(R.id.mainlayout,myfrag);
+//                transaction.commit();
 
             }catch(Exception ex){
                 Log.wtf("results","PROBLEM OF "+ex.toString());
@@ -77,7 +79,6 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_main);
         super.onCreate(savedInstanceState);
-
         int orientation = getResources().getConfiguration().orientation;
 
         Thread loadContent = new Thread(){
@@ -140,8 +141,21 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     public void ChooseItem(int i) {
 //        Fragment myfrag = getSupportFragmentManager().findFragmentById(R.id.fragmentDetails);
 //        ((BookDetailsFragment)myfrag).displayBook(books[i]);
-        detailsref.displayBook(books[i]);
+//        detailsref.displayBook(books[i]);
         //vp.setCurrentItem(i, false);
+    }
+
+    public void makeViewPager(ArrayList<Book> books){
+//        viewPagerFragment vpf = viewPagerFragment.newInstance(books);
+//        final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+//        transaction.replace(R.id.mainlayout,vpf);
+//        transaction.commit();
+        BookChooserFragment frag = BookChooserFragment.newInstance(books);
+        final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.mainlayout,frag);
+        transaction.commit();
+
+
     }
 
 

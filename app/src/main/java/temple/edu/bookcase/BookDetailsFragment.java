@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,10 +42,6 @@ public class BookDetailsFragment extends Fragment {
         mybook = getArguments().getParcelable("book");
     }
 
-    public void displayBook(String title){
-        TextView tvLabel = getView().findViewById(R.id.tvLabel);
-        tvLabel.setText(title);
-    }
 
     // Inflate the view for the fragment based on layout XML
     @Override
@@ -52,12 +49,21 @@ public class BookDetailsFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_detail2, container, false);
         ImageView img = (ImageView) view.findViewById(R.id.imageViewCover);
-        TextView title = (TextView) view.findViewById(R.id.textViewBookID);
+        TextView title = (TextView) view.findViewById(R.id.textViewTitle);
         TextView author = (TextView) view.findViewById(R.id.textViewAuthor);
         TextView id = (TextView) view.findViewById(R.id.textViewBookID);
+        TextView published = (TextView) view.findViewById(R.id.textViewPublished);
+        try{
 
         Book mybook = getArguments().getParcelable("book");
+        title.setText(mybook.title);
+        author.setText(mybook.author);
+        id.setText(Integer.toString(mybook.id));
+        published.setText(Integer.toString(mybook.published));
         Picasso.get().load(mybook.coverURL.toString()).into(img);
+        }catch(Exception ex){
+            Log.wtf("PROBLEM!",ex.toString());
+        }
         return view;
     }
 }
