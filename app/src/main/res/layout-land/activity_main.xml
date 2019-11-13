@@ -23,10 +23,11 @@
         android:id="@+id/deatilsFrameLand"
         android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:layout_marginTop="26dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintWidth_percent="0.5"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.5">
 
     </FrameLayout>
 

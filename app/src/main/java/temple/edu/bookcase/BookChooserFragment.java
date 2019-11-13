@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -34,6 +35,8 @@ public class BookChooserFragment extends Fragment {
 
     // TODO: Rename and change types of parameters
     private String mParam1;
+
+    private ArrayList<Book> bookList=new ArrayList<Book>();
 
     private OnFragmentInteractionListener mListener;
 
@@ -70,14 +73,15 @@ public class BookChooserFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_first, container, false);
         ListView lv = v.findViewById(R.id.listViewMain);
-//        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-//            @Override
-//            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-//                mListener.ChooseItem(i);
-//
-//            }
-//        });
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                mListener.ChooseItem(i);
+
+            }
+        });
         ArrayList<Book> booklist = getArguments().getParcelableArrayList("booklist");
+        bookList=booklist;
         ArrayList<String> titles = new ArrayList<String>();
 
         for(int i=0;i<booklist.size();i++){
@@ -111,6 +115,11 @@ public class BookChooserFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    public ArrayList<Book> getBooks(){
+        bookList = getArguments().getParcelableArrayList("booklist");
+        return bookList;
     }
 
     /**

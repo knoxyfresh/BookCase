@@ -17,7 +17,7 @@ import com.squareup.picasso.Picasso;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
-
+ * <p>
  * to handle interaction events.
  * Use the {@link BookDetailsFragment#newInstance} factory method to
  * create an instance of this fragment.
@@ -30,7 +30,7 @@ public class BookDetailsFragment extends Fragment {
     public static BookDetailsFragment newInstance(Book book) {
         BookDetailsFragment fragmentFirst = new BookDetailsFragment();
         Bundle args = new Bundle();
-        args.putParcelable("book",book);
+        args.putParcelable("book", book);
         fragmentFirst.setArguments(args);
         return fragmentFirst;
     }
@@ -53,17 +53,34 @@ public class BookDetailsFragment extends Fragment {
         TextView author = (TextView) view.findViewById(R.id.textViewAuthor);
         TextView id = (TextView) view.findViewById(R.id.textViewBookID);
         TextView published = (TextView) view.findViewById(R.id.textViewPublished);
-        try{
-
-        Book mybook = getArguments().getParcelable("book");
-        title.setText(mybook.title);
-        author.setText(mybook.author);
-        id.setText(Integer.toString(mybook.id));
-        published.setText(Integer.toString(mybook.published));
-        Picasso.get().load(mybook.coverURL.toString()).into(img);
-        }catch(Exception ex){
-            Log.wtf("PROBLEM!",ex.toString());
+        try {
+            Book mybook = getArguments().getParcelable("book");
+            title.setText(mybook.title);
+            author.setText(mybook.author);
+            id.setText(Integer.toString(mybook.id));
+            published.setText(Integer.toString(mybook.published));
+            Picasso.get().load(mybook.coverURL.toString()).into(img);
+        } catch (Exception ex) {
+            Log.wtf("PROBLEM!", ex.toString());
         }
         return view;
+    }
+
+    public void changeBook(Book mybook){
+        View view = getView();
+        ImageView img = (ImageView) view.findViewById(R.id.imageViewCover);
+        TextView title = (TextView) view.findViewById(R.id.textViewTitle);
+        TextView author = (TextView) view.findViewById(R.id.textViewAuthor);
+        TextView id = (TextView) view.findViewById(R.id.textViewBookID);
+        TextView published = (TextView) view.findViewById(R.id.textViewPublished);
+        try {
+            title.setText(mybook.title);
+            author.setText(mybook.author);
+            id.setText(Integer.toString(mybook.id));
+            published.setText(Integer.toString(mybook.published));
+            Picasso.get().load(mybook.coverURL.toString()).into(img);
+        } catch (Exception ex) {
+            Log.wtf("PROBLEM!", ex.toString());
+        }
     }
 }

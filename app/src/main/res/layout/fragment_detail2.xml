@@ -9,15 +9,16 @@
 
     <ImageView
         android:id="@+id/imageViewCover"
-        android:layout_width="410dp"
-        android:layout_height="270dp"
-        android:layout_marginBottom="461dp"
+        android:layout_width="wrap_content"
+        android:layout_height="200dp"
         android:contentDescription="@string/bookImageName"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:src="@tools:sample/avatars" />
+        tools:src="@tools:sample/avatars"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        />
 
     <TextView
         android:id="@+id/textViewTitle"

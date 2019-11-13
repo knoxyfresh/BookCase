@@ -4,6 +4,8 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 
@@ -12,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -25,26 +28,23 @@ import java.util.ArrayList;
 public class viewPagerFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
+    private ViewPager myvp;
+    private ArrayList<Book> bookList;
     private OnFragmentInteractionListener mListener;
 
     public viewPagerFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @return A new instance of fragment viewPagerFragment.
-     */
     // TODO: Rename and change types and number of parameters
+    public static viewPagerFragment newInstance(ArrayList<Book> books, int position) {
+        viewPagerFragment fragment = new viewPagerFragment();
+        Bundle args = new Bundle();
+        args.putParcelableArrayList("booklist",books);
+        args.putInt("position",position);
+        fragment.setArguments(args);
+        return fragment;
+    }
     public static viewPagerFragment newInstance(ArrayList<Book> books) {
         viewPagerFragment fragment = new viewPagerFragment();
         Bundle args = new Bundle();
@@ -56,10 +56,6 @@ public class viewPagerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
@@ -68,12 +64,32 @@ public class viewPagerFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_view_pager, container, false);
         ArrayList<Book> booklist = getArguments().getParcelableArrayList("booklist");
-        ViewPager vp = view.findViewById(R.id.viewPagerMain);
+        bookList=booklist;
+        ViewPager vp = view.findViewById(R.id.viewPagerInViewPagerFragment);
         MyBookAdapter adapter = new MyBookAdapter(getChildFragmentManager(),booklist);
         vp.setAdapter(adapter);
+        if(getArguments().containsKey("position")){
+        int position = getArguments().getInt("position");
+        vp.setCurrentItem(position);
+        }
+        myvp=vp;
 
 
         return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(savedInstanceState !=null){
+            bookList=savedInstanceState.getParcelableArrayList("booklist");
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList("booklist",bookList);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -98,6 +114,15 @@ public class viewPagerFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    public ArrayList<Book> getBooks(){
+        bookList = getArguments().getParcelableArrayList("booklist");
+        return bookList;
+    }
+
+    void setPosition(int position){
+        myvp.setCurrentItem(position);
     }
 
     /**
