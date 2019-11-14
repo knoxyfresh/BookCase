@@ -13,7 +13,11 @@ import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -23,7 +27,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements BookChooserFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements BookChooserFragment.OnFragmentInteractionListener,viewPagerFragment.searchListener {
 
     FragmentManager fm;
     ViewPager vp;
@@ -35,6 +39,9 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     BookChooserFragment bcfrag;
     BookDetailsFragment detailsfrag;
 
+    String urlMain = "https://kamorris.com/lab/audlib/booksearch.php";
+    String urlSearch = "https://kamorris.com/lab/audlib/booksearch.php?search=";
+
 
     Handler loadBooks = new Handler(new Handler.Callback() {
         @Override
@@ -43,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
             //Toast.makeText(MainActivity.this,(String)message.obj,Toast.LENGTH_LONG);
             try {
                 JSONArray jarrary = new JSONArray(message.obj.toString());
+                mybooks = new ArrayList<Book>();
                 for (int i = 0; i < jarrary.length(); i++) {
                     Book book = new Book();
                     JSONObject obj = jarrary.getJSONObject(i);
@@ -75,7 +83,8 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_main);
         super.onCreate(savedInstanceState);
-        //int orientation = getResources().getConfiguration().orientation;
+        getSupportActionBar().hide();
+        //checking for old frags
         if (getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait) instanceof viewPagerFragment) {
             vpfrag = (viewPagerFragment) getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait);
             if (vpfrag.getBooks() != null) {
@@ -98,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
                 // do request
             }
         } else {
-            getJSON();
+            getJSON(urlMain);
 
         }
 
@@ -139,14 +148,14 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         }
     }
 
-    public void getJSON() {
+    public void getJSON(final String urltext) {
         Thread loadContent = new Thread() {
 
             @Override
             public void run() {
                 URL url = null;
                 try {
-                    url = new URL("https://kamorris.com/lab/audlib/booksearch.php");
+                    url = new URL(urltext);
                     BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
                     String response = "", tmpResponse;
                     tmpResponse = reader.readLine();
@@ -177,6 +186,14 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     @Override
     public void ChooseItem(int i) {
         detailsfrag.changeBook(mybooks.get(i));
+    }
+
+    @Override
+    public void searchDone(String searchtext){
+        Log.wtf("edittext",searchtext);
+        if(searchtext!="")
+        getJSON(urlSearch+searchtext);
+        else getJSON(urlMain);
     }
 
     public void makeViewPager(ArrayList<Book> books) {
