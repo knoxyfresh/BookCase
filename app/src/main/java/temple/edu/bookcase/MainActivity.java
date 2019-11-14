@@ -32,29 +32,30 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     ArrayList<Book> mybooks = new ArrayList<Book>();
     FragmentPagerAdapter adapterViewPager;
     viewPagerFragment vpfrag;
-
+    BookChooserFragment bcfrag;
+    BookDetailsFragment detailsfrag;
 
 
     Handler loadBooks = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(@NonNull Message message) {
-                    Log.wtf("results",message.obj.toString());
+            Log.wtf("results", message.obj.toString());
             //Toast.makeText(MainActivity.this,(String)message.obj,Toast.LENGTH_LONG);
-            try{
-            JSONArray jarrary = new JSONArray(message.obj.toString());
-            for(int i=0;i<jarrary.length();i++){
-                Book book = new Book();
-                JSONObject obj = jarrary.getJSONObject(i);
-                book.id=obj.getInt("book_id");
-                book.title=obj.getString("title");
-                book.author=obj.getString("author");
-                book.duration=obj.getInt("duration");
-                book.published=obj.getInt("published");
-                book.coverURL = new URL(obj.getString("cover_url"));
-                mybooks.add(book);
-                Log.wtf("results",mybooks.get(i).toString());
-            }
-            //makeViewPager(mybooks);
+            try {
+                JSONArray jarrary = new JSONArray(message.obj.toString());
+                for (int i = 0; i < jarrary.length(); i++) {
+                    Book book = new Book();
+                    JSONObject obj = jarrary.getJSONObject(i);
+                    book.id = obj.getInt("book_id");
+                    book.title = obj.getString("title");
+                    book.author = obj.getString("author");
+                    book.duration = obj.getInt("duration");
+                    book.published = obj.getInt("published");
+                    book.coverURL = new URL(obj.getString("cover_url"));
+                    mybooks.add(book);
+                    Log.wtf("results", mybooks.get(i).toString());
+                }
+                //makeViewPager(mybooks);
 
 //                BookDetailsFragment myfrag = BookDetailsFragment.newInstance(mybooks.get(0));
 //                final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -62,8 +63,8 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 //                transaction.commit();
                 buildViews();
 
-            }catch(Exception ex){
-                Log.wtf("results","PROBLEM OF "+ex.toString());
+            } catch (Exception ex) {
+                Log.wtf("results", "PROBLEM OF " + ex.toString());
 
             }
             return false;
@@ -75,15 +76,31 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         setContentView(R.layout.activity_main);
         super.onCreate(savedInstanceState);
         //int orientation = getResources().getConfiguration().orientation;
-        if(getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait) instanceof viewPagerFragment){
+        if (getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait) instanceof viewPagerFragment) {
             vpfrag = (viewPagerFragment) getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait);
-            if(vpfrag.getBooks()!=null)
-            Log.wtf("OKUR","Found data "+ vpfrag.getBooks().toString());
-            else
-            Log.wtf("OKUR","Restored was null!");
-        }
+            if (vpfrag.getBooks() != null) {
+                mybooks = vpfrag.getBooks();
+                Log.wtf("OKUR", "Found data " + mybooks);
+                buildViews();
+            } else {
+                Log.wtf("OKUR", "Restored was null!");
+                // do request
+            }
 
-        getJSON();
+        } else if (getSupportFragmentManager().findFragmentById(R.id.selectFrameLand) instanceof BookChooserFragment) {
+            bcfrag = (BookChooserFragment) getSupportFragmentManager().findFragmentById(R.id.selectFrameLand);
+            if (bcfrag.getBooks() != null) {
+                mybooks = bcfrag.getBooks();
+                Log.wtf("OKUR", "Found data " + mybooks);
+                buildViews();
+            } else {
+                Log.wtf("OKUR", "Restored was null!");
+                // do request
+            }
+        } else {
+            getJSON();
+
+        }
 
 
 //        boolean istablet = (getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
@@ -112,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     }
 
 
-    public void buildViews(){
+    public void buildViews() {
         int orientation = getResources().getConfiguration().orientation;
         boolean istablet = (getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
         if (orientation == Configuration.ORIENTATION_LANDSCAPE || istablet) {
@@ -122,28 +139,28 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         }
     }
 
-    public void getJSON(){
-        Thread loadContent = new Thread(){
+    public void getJSON() {
+        Thread loadContent = new Thread() {
 
             @Override
             public void run() {
                 URL url = null;
-                try{
+                try {
                     url = new URL("https://kamorris.com/lab/audlib/booksearch.php");
                     BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
                     String response = "", tmpResponse;
                     tmpResponse = reader.readLine();
-                    while(tmpResponse!=null){
-                        response+=tmpResponse;
+                    while (tmpResponse != null) {
+                        response += tmpResponse;
                         tmpResponse = reader.readLine();
                     }
                     Message msg = Message.obtain();
                     //Toast.makeText(MainActivity.this,"HI we have: "+response,Toast.LENGTH_LONG);
-                    msg.obj=response;
+                    msg.obj = response;
                     loadBooks.sendMessage(msg);
-                }catch(Exception ex){
+                } catch (Exception ex) {
                     //Toast.makeText(MainActivity.this,"WE HAVE A PROBLEM HOY HOY HOYHOYHOYHOYHOYHYOYH!",Toast.LENGTH_LONG);
-                    Log.wtf("results","NOPE!");
+                    Log.wtf("results", "NOPE!");
 
                 }
             }
@@ -159,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 
     @Override
     public void ChooseItem(int i) {
-        //detailsref.changeBook(mybooks.get(i));
+        detailsfrag.changeBook(mybooks.get(i));
     }
 
     public void makeViewPager(ArrayList<Book> books) {
@@ -173,12 +190,12 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     public void makeListView(ArrayList<Book> books) {
         BookChooserFragment frag = BookChooserFragment.newInstance(books);
         BookDetailsFragment details = BookDetailsFragment.newInstance(books.get(0));
+        detailsfrag = details;
         final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.selectFrameLand,frag);
-        transaction.replace(R.id.deatilsFrameLand,details);
+        transaction.replace(R.id.selectFrameLand, frag);
+        transaction.replace(R.id.deatilsFrameLand, details);
         transaction.commit();
     }
-
 
 
 }
