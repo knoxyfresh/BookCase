@@ -78,15 +78,6 @@ public class viewPagerFragment extends Fragment {
             int position = getArguments().getInt("position");
             vp.setCurrentItem(position);
         }
-
-        final Button mybutton = view.findViewById(R.id.buttonViewPager);
-        final EditText textbox = view.findViewById(R.id.editTextViewPagerFragment);
-        mybutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mListener.searchDone(textbox.getText().toString());
-            }
-        });
         myvp = vp;
 
 
@@ -111,12 +102,12 @@ public class viewPagerFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof searchListener) {
-            mListener = (searchListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
+//        if (context instanceof searchListener) {
+//            mListener = (searchListener) context;
+//        } else {
+//            throw new RuntimeException(context.toString()
+//                    + " must implement OnFragmentInteractionListener");
+//        }
     }
 
     @Override

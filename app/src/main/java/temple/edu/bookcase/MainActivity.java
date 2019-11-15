@@ -16,6 +16,8 @@ import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -27,7 +29,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements BookChooserFragment.OnFragmentInteractionListener,viewPagerFragment.searchListener {
+public class MainActivity extends AppCompatActivity implements BookChooserFragment.OnFragmentInteractionListener{
 
     FragmentManager fm;
     ViewPager vp;
@@ -38,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     viewPagerFragment vpfrag;
     BookChooserFragment bcfrag;
     BookDetailsFragment detailsfrag;
+    EditText searchbox;
 
     String urlMain = "https://kamorris.com/lab/audlib/booksearch.php";
     String urlSearch = "https://kamorris.com/lab/audlib/booksearch.php?search=";
@@ -83,6 +86,19 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_main);
         super.onCreate(savedInstanceState);
+
+        searchbox = findViewById(R.id.editTextMain);
+
+        final Button searchbutton = findViewById(R.id.buttonSearchMain);
+        searchbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                searchDone(searchbox.getText().toString());
+            }
+        });
+
+
+
         getSupportActionBar().hide();
         //checking for old frags
         if (getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait) instanceof viewPagerFragment) {
@@ -188,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         detailsfrag.changeBook(mybooks.get(i));
     }
 
-    @Override
+
     public void searchDone(String searchtext){
         Log.wtf("edittext",searchtext);
         if(searchtext!="")
