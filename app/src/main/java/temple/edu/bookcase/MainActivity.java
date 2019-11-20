@@ -7,11 +7,15 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,6 +23,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -28,6 +33,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+
+import edu.temple.audiobookplayer.AudiobookService;
 
 public class MainActivity extends AppCompatActivity implements BookChooserFragment.OnFragmentInteractionListener{
 
@@ -82,12 +89,60 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         }
     });
 
+    AudiobookService.MediaControlBinder myServiceMediaBinder;
+
+    Handler serviceHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(@NonNull Message message) {
+            Log.wtf("msg",message.obj.toString());
+            return false;
+        }
+    });
+
+    Handler progressHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(@NonNull Message message) {
+            Log.wtf("Progress",Integer.toString(message.what));
+            SeekBar mySeekBar = findViewById(R.id.seekBar);
+            mySeekBar.setMax(60);
+            mySeekBar.setProgress(mySeekBar.getProgress()+1);
+            return false;
+        }
+    });
+
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent serviceIntent = new Intent(this, AudiobookService.class);
+        bindService(serviceIntent,myConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    ServiceConnection myConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder service) {
+            AudiobookService.MediaControlBinder binder = (AudiobookService.MediaControlBinder)service;
+            myServiceMediaBinder = binder;
+            binder.play(1);
+            binder.setProgressHandler(progressHandler);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+
+        }
+    };
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_main);
         super.onCreate(savedInstanceState);
 
         searchbox = findViewById(R.id.editTextMain);
+
+
 
         final Button searchbutton = findViewById(R.id.buttonSearchMain);
         searchbutton.setOnClickListener(new View.OnClickListener() {
@@ -128,30 +183,9 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         }
 
 
-//        boolean istablet = (getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
-////        Log.wtf("OY","Tablert: "+istablet);
-//        if (orientation == Configuration.ORIENTATION_LANDSCAPE || istablet) {
-//            makeViewPager(mybooks);
-////            books = getResources().getStringArray(R.array.Books);
-////            // In landscape
-////            detailsref = BookDetailsFragment.newInstance(books[0]);
-////            final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-////            BookChooserFragment myfrag = BookChooserFragment.newInstance(getResources().getStringArray(R.array.Books));
-////            transaction.replace(R.id.selectFrameLand, myfrag);
-////            transaction.replace(R.id.deatilsFrameLand, detailsref);
-////            transaction.addToBackStack(null);
-////            transaction.commit();
-//        } else {
-//            makeListView(mybooks);
-////            // In portrait
-////            vp = findViewById(R.id.viewPagerMain);
-////            ArrayList<String> strings = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.Books)));
-//////        adapterViewPager = new this.MyPagerAdapter(getSupportFragmentManager(), strings);
-////            adapterViewPager = new MainActivity.MyPagerAdapter(getSupportFragmentManager(), strings);
-////            vp.setAdapter(adapterViewPager);
-//        }
 
     }
+
 
 
     public void buildViews() {

@@ -72,7 +72,7 @@ public class BookChooserFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_first, container, false);
-        ListView lv = v.findViewById(R.id.listViewMain);
+        ListView lv = v.findViewById(R.id.listViewChooser);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
