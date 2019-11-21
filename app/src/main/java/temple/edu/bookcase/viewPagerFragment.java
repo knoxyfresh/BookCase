@@ -35,7 +35,7 @@ public class viewPagerFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private ViewPager myvp;
     private ArrayList<Book> bookList;
-    private searchListener mListener;
+    private chooseListener mListener;
 
     public viewPagerFragment() {
         // Required empty public constructor
@@ -78,9 +78,23 @@ public class viewPagerFragment extends Fragment {
             int position = getArguments().getInt("position");
             vp.setCurrentItem(position);
         }
+        vp.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                mListener.chooseBook(position);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
         myvp = vp;
-
-
         return view;
     }
 
@@ -102,12 +116,12 @@ public class viewPagerFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-//        if (context instanceof searchListener) {
-//            mListener = (searchListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
+        if (context instanceof chooseListener) {
+            mListener = (chooseListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
     }
 
     @Override
@@ -127,8 +141,8 @@ public class viewPagerFragment extends Fragment {
     }
 
 
-    public interface searchListener {
+    public interface chooseListener {
         // TODO: Update argument type and name
-        void searchDone(String searchtext);
+        void chooseBook(int id);
     }
 }

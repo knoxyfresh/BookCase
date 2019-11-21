@@ -36,7 +36,7 @@ import java.util.ArrayList;
 
 import edu.temple.audiobookplayer.AudiobookService;
 
-public class MainActivity extends AppCompatActivity implements BookChooserFragment.OnFragmentInteractionListener{
+public class MainActivity extends AppCompatActivity implements BookChooserFragment.OnFragmentInteractionListener, viewPagerFragment.chooseListener{
 
     FragmentManager fm;
     ViewPager vp;
@@ -48,6 +48,8 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     BookChooserFragment bcfrag;
     BookDetailsFragment detailsfrag;
     EditText searchbox;
+    Book currentBook;
+    int currentBookIndex;
 
     String urlMain = "https://kamorris.com/lab/audlib/booksearch.php";
     String urlSearch = "https://kamorris.com/lab/audlib/booksearch.php?search=";
@@ -104,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         public boolean handleMessage(@NonNull Message message) {
             Log.wtf("Progress",Integer.toString(message.what));
             SeekBar mySeekBar = findViewById(R.id.seekBar);
-            mySeekBar.setMax(60);
+//            mySeekBar.setMax(60);
             mySeekBar.setProgress(mySeekBar.getProgress()+1);
             return false;
         }
@@ -124,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         public void onServiceConnected(ComponentName componentName, IBinder service) {
             AudiobookService.MediaControlBinder binder = (AudiobookService.MediaControlBinder)service;
             myServiceMediaBinder = binder;
-            binder.play(1);
+            //binder.play(1);
             binder.setProgressHandler(progressHandler);
         }
 
@@ -152,6 +154,36 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
             }
         });
 
+        final Button playbutton = findViewById(R.id.buttonPlayPause);
+        playbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                playCurrentBook();
+            }
+        });
+        final SeekBar mySeekBar = findViewById(R.id.seekBar);
+        mySeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(myServiceMediaBinder!=null && fromUser){
+                Log.wtf("msg",progress+"second of Length: "+currentBook.duration);
+                    myServiceMediaBinder.play(currentBookIndex, progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                if(myServiceMediaBinder!=null) {
+                    myServiceMediaBinder.pause();
+                }
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
 
 
         getSupportActionBar().hide();
@@ -198,6 +230,21 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         }
     }
 
+    public void getCurrentBook(int id){
+        myServiceMediaBinder.stop();
+        currentBookIndex=id;
+        SeekBar mySeekBar = findViewById(R.id.seekBar);
+        currentBook=mybooks.get(id);
+        mySeekBar.setMax(currentBook.duration);
+        mySeekBar.setProgress(0);
+    }
+
+    public void playCurrentBook(){
+        myServiceMediaBinder.play(currentBookIndex+1);
+        Log.wtf("msg","Playing book: "+currentBookIndex);
+
+    }
+
     public void getJSON(final String urltext) {
         Thread loadContent = new Thread() {
 
@@ -235,7 +282,14 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 
     @Override
     public void ChooseItem(int i) {
+        getCurrentBook(i);
         detailsfrag.changeBook(mybooks.get(i));
+    }
+
+    @Override
+    public void chooseBook(int id){
+        getCurrentBook(id);
+        Log.wtf("msg","Viewpager is on "+id);
     }
 
 
