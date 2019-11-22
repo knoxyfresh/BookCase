@@ -122,7 +122,9 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if(!isChangingConfigurations()){
         unbindService(myConnection);
+        }
     }
 
     @Override
