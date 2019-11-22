@@ -25,6 +25,12 @@ public class MyBookAdapter extends FragmentPagerAdapter {
         return null;
     }
 
+    public Book getBook(int position){
+        if(position<books.size())
+        return books.get(position);
+        else return null;
+    }
+
     @Override
     public int getCount() {
         return books.size();

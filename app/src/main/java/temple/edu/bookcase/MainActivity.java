@@ -2,10 +2,8 @@ package temple.edu.bookcase;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.viewpager.widget.ViewPager;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -17,8 +15,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -36,20 +32,19 @@ import java.util.ArrayList;
 
 import edu.temple.audiobookplayer.AudiobookService;
 
-public class MainActivity extends AppCompatActivity implements BookChooserFragment.OnFragmentInteractionListener, viewPagerFragment.chooseListener{
+public class MainActivity extends AppCompatActivity implements BookChooserFragment.OnFragmentInteractionListener, viewPagerFragment.chooseListener {
 
-    FragmentManager fm;
-    ViewPager vp;
-    ArrayList<BookChooserFragment> myfragments = new ArrayList<BookChooserFragment>();
-    String[] books;
     ArrayList<Book> mybooks = new ArrayList<Book>();
     FragmentPagerAdapter adapterViewPager;
     viewPagerFragment vpfrag;
     BookChooserFragment bcfrag;
     BookDetailsFragment detailsfrag;
     EditText searchbox;
-    Book currentBook;
+    SeekBar mySeekBar;
+    Book currentBook=null;
     int currentBookIndex;
+    int playingbookindex;
+    boolean paused = false;
 
     String urlMain = "https://kamorris.com/lab/audlib/booksearch.php";
     String urlSearch = "https://kamorris.com/lab/audlib/booksearch.php?search=";
@@ -96,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     Handler serviceHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(@NonNull Message message) {
-            Log.wtf("msg",message.obj.toString());
+            Log.wtf("msg", message.obj.toString());
             return false;
         }
     });
@@ -104,27 +99,38 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     Handler progressHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(@NonNull Message message) {
-            Log.wtf("Progress",Integer.toString(message.what));
-            SeekBar mySeekBar = findViewById(R.id.seekBar);
+            int progress = mySeekBar.getProgress();
+            Log.wtf("Progress", Integer.toString(progress));
 //            mySeekBar.setMax(60);
-            mySeekBar.setProgress(mySeekBar.getProgress()+1);
+            mySeekBar.setProgress(progress + 1);
+            if (progress == currentBook.duration) {
+                myServiceMediaBinder.stop();
+            }
             return false;
         }
     });
-
 
 
     @Override
     protected void onStart() {
         super.onStart();
         Intent serviceIntent = new Intent(this, AudiobookService.class);
-        bindService(serviceIntent,myConnection, Context.BIND_AUTO_CREATE);
+        bindService(serviceIntent, myConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable("book",currentBook);
+        outState.putInt("playingindex",playingbookindex);
+        outState.putInt("bookindex",currentBookIndex);
+        outState.putParcelable("service",myServiceMediaBinder);
     }
 
     ServiceConnection myConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
-            AudiobookService.MediaControlBinder binder = (AudiobookService.MediaControlBinder)service;
+            AudiobookService.MediaControlBinder binder = (AudiobookService.MediaControlBinder) service;
             myServiceMediaBinder = binder;
             //binder.play(1);
             binder.setProgressHandler(progressHandler);
@@ -142,8 +148,12 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         setContentView(R.layout.activity_main);
         super.onCreate(savedInstanceState);
 
-        searchbox = findViewById(R.id.editTextMain);
 
+        //restore info about state
+
+
+
+        searchbox = findViewById(R.id.editTextMain);
 
 
         final Button searchbutton = findViewById(R.id.buttonSearchMain);
@@ -154,33 +164,50 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
             }
         });
 
-        final Button playbutton = findViewById(R.id.buttonPlayPause);
+        final Button playbutton = findViewById(R.id.buttonPlay);
         playbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 playCurrentBook();
             }
         });
-        final SeekBar mySeekBar = findViewById(R.id.seekBar);
+
+        final Button stopbutton = findViewById(R.id.buttonStop);
+        stopbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                stopCurrentBook();
+            }
+        });
+
+        final Button pausebutton = findViewById(R.id.buttonPause);
+        pausebutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                pauseCurrentBook();
+            }
+        });
+
+
+        mySeekBar = findViewById(R.id.seekBar);
+        mySeekBar.setVisibility(View.INVISIBLE);
         mySeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(myServiceMediaBinder!=null && fromUser){
-                Log.wtf("msg",progress+"second of Length: "+currentBook.duration);
-                    myServiceMediaBinder.play(currentBookIndex, progress);
-                }
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                if(myServiceMediaBinder!=null) {
-                    myServiceMediaBinder.pause();
-                }
+
 
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+                if (myServiceMediaBinder != null) {
+                    //Log.wtf("msg",progress+"second of Length: "+currentBook.duration+" index:"+currentBookIndex);
+                    playCurrentBook();
+                }
 
             }
         });
@@ -192,6 +219,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
             vpfrag = (viewPagerFragment) getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait);
             if (vpfrag.getBooks() != null) {
                 mybooks = vpfrag.getBooks();
+                playCurrentBook();
                 Log.wtf("OKUR", "Found data " + mybooks);
                 buildViews();
             } else {
@@ -215,9 +243,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         }
 
 
-
     }
-
 
 
     public void buildViews() {
@@ -230,19 +256,45 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         }
     }
 
-    public void getCurrentBook(int id){
-        myServiceMediaBinder.stop();
-        currentBookIndex=id;
-        SeekBar mySeekBar = findViewById(R.id.seekBar);
-        currentBook=mybooks.get(id);
-        mySeekBar.setMax(currentBook.duration);
-        mySeekBar.setProgress(0);
+    public void getCurrentBook(int id) {
+        currentBookIndex = mybooks.get(id).id;
+        currentBook = mybooks.get(id);
     }
 
-    public void playCurrentBook(){
-        myServiceMediaBinder.play(currentBookIndex+1);
-        Log.wtf("msg","Playing book: "+currentBookIndex);
 
+    public void playCurrentBook() {
+        mySeekBar.setVisibility(View.VISIBLE);
+        if(currentBookIndex==0) getCurrentBook(0);
+
+        if(paused) {
+            myServiceMediaBinder.play(playingbookindex, mySeekBar.getProgress());
+            paused=false;
+        }else if (currentBookIndex != playingbookindex) {
+            myServiceMediaBinder.stop();
+            mySeekBar.setMax(currentBook.duration);
+            mySeekBar.setProgress(0);
+            TextView np = findViewById(R.id.textViewNowPlaying);
+            np.setText("Playing: " + currentBook.title);
+            myServiceMediaBinder.play(currentBookIndex);
+            playingbookindex=currentBookIndex;
+        }else{
+            myServiceMediaBinder.play(playingbookindex, mySeekBar.getProgress());
+
+        }
+        Log.wtf("msg", "Playing book: " + currentBookIndex + " Progress:" + mySeekBar.getProgress());
+
+    }
+
+    public void stopCurrentBook() {
+        myServiceMediaBinder.stop();
+        mySeekBar.setProgress(0);
+        mySeekBar.setVisibility(View.INVISIBLE);
+        paused=false;
+    }
+
+    public void pauseCurrentBook() {
+        myServiceMediaBinder.pause();
+        paused=true;
     }
 
     public void getJSON(final String urltext) {
@@ -287,16 +339,16 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     }
 
     @Override
-    public void chooseBook(int id){
+    public void chooseBook(int id) {
         getCurrentBook(id);
-        Log.wtf("msg","Viewpager is on "+id);
+        Log.wtf("msg", "Viewpager is on " + id);
     }
 
 
-    public void searchDone(String searchtext){
-        Log.wtf("edittext",searchtext);
-        if(searchtext!="")
-        getJSON(urlSearch+searchtext);
+    public void searchDone(String searchtext) {
+        Log.wtf("edittext", searchtext);
+        if (searchtext != "")
+            getJSON(urlSearch + searchtext);
         else getJSON(urlMain);
     }
 

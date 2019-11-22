@@ -72,7 +72,7 @@ public class viewPagerFragment extends Fragment {
         ArrayList<Book> booklist = getArguments().getParcelableArrayList("booklist");
         bookList = booklist;
         ViewPager vp = view.findViewById(R.id.viewPagerInViewPagerFragment);
-        MyBookAdapter adapter = new MyBookAdapter(getChildFragmentManager(), booklist);
+        final MyBookAdapter adapter = new MyBookAdapter(getChildFragmentManager(), booklist);
         vp.setAdapter(adapter);
         if (getArguments().containsKey("position")) {
             int position = getArguments().getInt("position");
@@ -94,7 +94,6 @@ public class viewPagerFragment extends Fragment {
 
             }
         });
-        myvp = vp;
         return view;
     }
 
