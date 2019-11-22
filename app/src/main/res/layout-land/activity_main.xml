@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginTop="10dp"
-        android:text="Button"
+        android:text="@android:string/search_go"
         app:layout_constraintStart_toEndOf="@+id/editTextMain"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -92,6 +92,16 @@
         android:layout_marginStart="75dp"
         android:layout_marginTop="100dp"
         android:background="@android:drawable/ic_media_pause"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewNowPlaying"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="140dp"
+        android:layout_marginTop="96dp"
+        android:textAlignment="viewStart"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

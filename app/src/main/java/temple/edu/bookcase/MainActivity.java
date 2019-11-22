@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         outState.putParcelable("book",currentBook);
         outState.putInt("playingindex",playingbookindex);
         outState.putInt("bookindex",currentBookIndex);
-        outState.putParcelable("service",myServiceMediaBinder);
+//        outState.putParcelable("service",myServiceMediaBinder);
     }
 
     ServiceConnection myConnection = new ServiceConnection() {
@@ -148,10 +148,12 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         setContentView(R.layout.activity_main);
         super.onCreate(savedInstanceState);
 
-
+        if(savedInstanceState!=null){
         //restore info about state
-
-
+        currentBook = savedInstanceState.getParcelable("book");
+        playingbookindex = savedInstanceState.getInt("playingindex");
+        currentBookIndex = savedInstanceState.getInt("bookindex");
+        }
 
         searchbox = findViewById(R.id.editTextMain);
 
@@ -219,7 +221,6 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
             vpfrag = (viewPagerFragment) getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait);
             if (vpfrag.getBooks() != null) {
                 mybooks = vpfrag.getBooks();
-                playCurrentBook();
                 Log.wtf("OKUR", "Found data " + mybooks);
                 buildViews();
             } else {
