@@ -41,10 +41,11 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     BookDetailsFragment detailsfrag;
     EditText searchbox;
     SeekBar mySeekBar;
-    Book currentBook=null;
+    Book currentBook = null;
     int currentBookIndex;
     int playingbookindex;
     boolean paused = false;
+    boolean progressrestored = false;
 
     String urlMain = "https://kamorris.com/lab/audlib/booksearch.php";
     String urlSearch = "https://kamorris.com/lab/audlib/booksearch.php?search=";
@@ -119,11 +120,22 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(myConnection);
+    }
+
+    @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable("book",currentBook);
-        outState.putInt("playingindex",playingbookindex);
-        outState.putInt("bookindex",currentBookIndex);
+        outState.putParcelable("book", currentBook);
+        outState.putInt("playingindex", playingbookindex);
+        outState.putInt("bookindex", currentBookIndex);
+        outState.putInt("progress", mySeekBar.getProgress());
+        outState.putBoolean("paused", paused);
+        outState.putParcelableArrayList("booklist",mybooks);
+            Log.wtf("OKUR", "SAVINGBOOKS data " + mybooks);
+        progressrestored = true;
 //        outState.putParcelable("service",myServiceMediaBinder);
     }
 
@@ -147,12 +159,28 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_main);
         super.onCreate(savedInstanceState);
+        mySeekBar = findViewById(R.id.seekBar);
+        mySeekBar.setVisibility(View.INVISIBLE); //start off as hidden
+        if (savedInstanceState != null) {
+            //restore info about state
+            currentBook = savedInstanceState.getParcelable("book");
+            TextView np = findViewById(R.id.textViewNowPlaying);
+            if(currentBook!=null){
+            np.setText("Playing: "+currentBook.title);
+            mySeekBar.setMax(currentBook.duration);
+            mySeekBar.setVisibility(View.VISIBLE);
+            mySeekBar.setProgress(savedInstanceState.getInt("progress"));
+            }
+            playingbookindex = savedInstanceState.getInt("playingindex");
+            currentBookIndex = savedInstanceState.getInt("bookindex");
+            paused = savedInstanceState.getBoolean("paused");
 
-        if(savedInstanceState!=null){
-        //restore info about state
-        currentBook = savedInstanceState.getParcelable("book");
-        playingbookindex = savedInstanceState.getInt("playingindex");
-        currentBookIndex = savedInstanceState.getInt("bookindex");
+            mybooks=savedInstanceState.getParcelableArrayList("booklist");
+            buildViews();
+            Log.wtf("OKUR","Here are my books: "+mybooks);
+            //checking for old frags
+        }else{
+                getJSON(urlMain);
         }
 
         searchbox = findViewById(R.id.editTextMain);
@@ -191,8 +219,6 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         });
 
 
-        mySeekBar = findViewById(R.id.seekBar);
-        mySeekBar.setVisibility(View.INVISIBLE);
         mySeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -216,32 +242,32 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 
 
         getSupportActionBar().hide();
-        //checking for old frags
-        if (getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait) instanceof viewPagerFragment) {
-            vpfrag = (viewPagerFragment) getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait);
-            if (vpfrag.getBooks() != null) {
-                mybooks = vpfrag.getBooks();
-                Log.wtf("OKUR", "Found data " + mybooks);
-                buildViews();
-            } else {
-                Log.wtf("OKUR", "Restored was null!");
-                // do request
-            }
-
-        } else if (getSupportFragmentManager().findFragmentById(R.id.selectFrameLand) instanceof BookChooserFragment) {
-            bcfrag = (BookChooserFragment) getSupportFragmentManager().findFragmentById(R.id.selectFrameLand);
-            if (bcfrag.getBooks() != null) {
-                mybooks = bcfrag.getBooks();
-                Log.wtf("OKUR", "Found data " + mybooks);
-                buildViews();
-            } else {
-                Log.wtf("OKUR", "Restored was null!");
-                // do request
-            }
-        } else {
-            getJSON(urlMain);
-
-        }
+//        //checking for old frags
+//        if (getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait) instanceof viewPagerFragment) {
+//            vpfrag = (viewPagerFragment) getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait);
+//            if (vpfrag.getBooks() != null) {
+//                mybooks = vpfrag.getBooks();
+//                Log.wtf("OKUR", "Found data " + mybooks);
+//                buildViews();
+//            } else {
+//                Log.wtf("OKUR", "Restored was null!");
+//                // do request
+//            }
+//
+//        } else if (getSupportFragmentManager().findFragmentById(R.id.selectFrameLand) instanceof BookChooserFragment) {
+//            bcfrag = (BookChooserFragment) getSupportFragmentManager().findFragmentById(R.id.selectFrameLand);
+//            if (bcfrag.getBooks() != null) {
+//                mybooks = bcfrag.getBooks();
+//                Log.wtf("OKUR", "Found data " + mybooks);
+//                buildViews();
+//            } else {
+//                Log.wtf("OKUR", "Restored was null!");
+//                // do request
+//            }
+//        } else {
+//            getJSON(urlMain);
+//
+//        }
 
 
     }
@@ -265,20 +291,24 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 
     public void playCurrentBook() {
         mySeekBar.setVisibility(View.VISIBLE);
-        if(currentBookIndex==0) getCurrentBook(0);
+        if (currentBookIndex == 0) getCurrentBook(0);
 
-        if(paused) {
+        if (paused) {
             myServiceMediaBinder.play(playingbookindex, mySeekBar.getProgress());
-            paused=false;
-        }else if (currentBookIndex != playingbookindex) {
+            paused = false;
+        } else if (currentBookIndex != playingbookindex) {
             myServiceMediaBinder.stop();
             mySeekBar.setMax(currentBook.duration);
-            mySeekBar.setProgress(0);
+            if (progressrestored) {
+                progressrestored = false;
+            } else {
+                mySeekBar.setProgress(0);
+            }
             TextView np = findViewById(R.id.textViewNowPlaying);
             np.setText("Playing: " + currentBook.title);
             myServiceMediaBinder.play(currentBookIndex);
-            playingbookindex=currentBookIndex;
-        }else{
+            playingbookindex = currentBookIndex;
+        } else {
             myServiceMediaBinder.play(playingbookindex, mySeekBar.getProgress());
 
         }
@@ -290,12 +320,12 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         myServiceMediaBinder.stop();
         mySeekBar.setProgress(0);
         mySeekBar.setVisibility(View.INVISIBLE);
-        paused=false;
+        paused = false;
     }
 
     public void pauseCurrentBook() {
         myServiceMediaBinder.pause();
-        paused=true;
+        paused = true;
     }
 
     public void getJSON(final String urltext) {
