@@ -2,13 +2,13 @@ package temple.edu.bookcase;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
@@ -21,32 +21,42 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import edu.temple.audiobookplayer.AudiobookService;
 
-public class MainActivity extends AppCompatActivity implements BookChooserFragment.OnFragmentInteractionListener, viewPagerFragment.chooseListener {
+public class MainActivity extends AppCompatActivity implements BookChooserFragment.OnFragmentInteractionListener, viewPagerFragment.chooseListener, BookDetailsFragment.mydownloadListener, BookDetailsFragment.mydeleteListener, BookDetailsFragment.myplayListener {
 
     ArrayList<Book> mybooks = new ArrayList<Book>();
-    FragmentPagerAdapter adapterViewPager;
-    viewPagerFragment vpfrag;
-    BookChooserFragment bcfrag;
     BookDetailsFragment detailsfrag;
     EditText searchbox;
     SeekBar mySeekBar;
     Book currentBook = null;
-    int currentBookIndex;
-    int playingbookindex;
+    Book playingBook = null;
+    int currentposition=0;
     boolean paused = false;
-    boolean progressrestored = false;
-
+    Gson gson = new Gson();
+    int playingBookProgress;
+    //    SharedPreferences pref= PreferenceManager.getDefaultSharedPreferences(this);
+    int downloadedfileid;
     String urlMain = "https://kamorris.com/lab/audlib/booksearch.php";
     String urlSearch = "https://kamorris.com/lab/audlib/booksearch.php?search=";
 
@@ -77,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 //                final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 //                transaction.replace(R.id.mainlayout,myfrag);
 //                transaction.commit();
+                if (currentBook==null) currentBook=mybooks.get(0);
                 buildViews();
 
             } catch (Exception ex) {
@@ -89,13 +100,6 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 
     AudiobookService.MediaControlBinder myServiceMediaBinder;
 
-    Handler serviceHandler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(@NonNull Message message) {
-            Log.wtf("msg", message.obj.toString());
-            return false;
-        }
-    });
 
     Handler progressHandler = new Handler(new Handler.Callback() {
         @Override
@@ -104,8 +108,27 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
             Log.wtf("Progress", Integer.toString(progress));
 //            mySeekBar.setMax(60);
             mySeekBar.setProgress(progress + 1);
-            if (progress == currentBook.duration) {
+            if (progress == playingBook.duration) {
                 myServiceMediaBinder.stop();
+            }
+            return false;
+        }
+    });
+    Handler downloadDoneHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message message) {
+            try {
+                File f = (File) message.obj;
+                Toast.makeText(MainActivity.this, "Download complete!!!", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Log.e("tag2", e.getMessage());
+            }
+            //StartFragmentsHide();
+            File file = new File(getFilesDir(), downloadedfileid + "");
+            if (file.exists()) {
+//                myServiceMediaBinder.play(file, 0);
+//                currentBook=getBookByID(downloadedfileid);
+                buildViews();
             }
             return false;
         }
@@ -116,29 +139,73 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     protected void onStart() {
         super.onStart();
         Intent serviceIntent = new Intent(this, AudiobookService.class);
-        bindService(serviceIntent, myConnection, Context.BIND_AUTO_CREATE);
+        getApplicationContext().bindService(serviceIntent, myConnection, Context.BIND_AUTO_CREATE);
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(!isChangingConfigurations()){
-        unbindService(myConnection);
+        if (!isChangingConfigurations()) {
+            getApplicationContext().unbindService(myConnection);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SharedPreferences.Editor prefs = getPreferences(MODE_PRIVATE).edit();
+        prefs.putString("Books",gson.toJson(mybooks));
+        prefs.apply();
+//        if(playingBook!=null){
+//            prefs.putString("PlayingBook",gson.toJson(currentBook));
+//        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences prefs = this.getPreferences(Context.MODE_PRIVATE);
+        String booksjson = prefs.getString("Books","");
+        Log.wtf("SP","This: "+booksjson);
+        if(booksjson!=""){
+            Type type = new TypeToken<List<Book>>(){}.getType();
+            mybooks = gson.fromJson(booksjson,type);
+            buildViews();
+        }else{
+
+        }
+//        currentBookIndex = prefs.getInt("playingindex", -1);
+//        editor.putInt("playingindex", currentBookIndex);
+//        editor.putString("playingtitle", currentBook.title);
+//        int currentbookindex = prefs.getInt("CurrentBookIndex",-1);
+//        int progress = prefs.getInt("Progress",-1);
+//        String currbookjson=prefs.getString("CurrentBook","");
+//        if(currbookjson!="" && progress!=-1){
+//            Book abook = gson.fromJson(currbookjson,Book.class);
+//            currentBook=abook;
+//            currentBookIndex=currentbookindex;
+//            mySeekBar.setProgress(progress);
+//        Log.wtf("MSG","Found this data from perist: "+currentBook.toString()+" Progress: "+progress);
+//        }
     }
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable("book", currentBook);
-        outState.putInt("playingindex", playingbookindex);
-        outState.putInt("bookindex", currentBookIndex);
+        if(playingBook!=null){
+        outState.putParcelable("playingbook", playingBook);
+        }
+//        outState.putInt("bookindex", currentBookIndex);
         outState.putInt("progress", mySeekBar.getProgress());
         outState.putBoolean("paused", paused);
-        outState.putParcelableArrayList("booklist",mybooks);
+        //outState.putParcelableArrayList("booklist",mybooks);
             Log.wtf("OKUR", "SAVINGBOOKS data " + mybooks);
-        progressrestored = true;
-//        outState.putParcelable("service",myServiceMediaBinder);
+        //outState.putParcelable("service",myServiceMediaBinder);
+
+
+
     }
 
     ServiceConnection myConnection = new ServiceConnection() {
@@ -167,22 +234,22 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
             //restore info about state
             currentBook = savedInstanceState.getParcelable("book");
             TextView np = findViewById(R.id.textViewNowPlaying);
-            if(currentBook!=null){
-            np.setText("Playing: "+currentBook.title);
-            mySeekBar.setMax(currentBook.duration);
-            mySeekBar.setVisibility(View.VISIBLE);
-            mySeekBar.setProgress(savedInstanceState.getInt("progress"));
+            playingBook= savedInstanceState.getParcelable("playingbook");
+            if (playingBook != null) {
+                np.setText("Playing: " + playingBook.title);
+                mySeekBar.setMax(playingBook.duration);
+                mySeekBar.setVisibility(View.VISIBLE);
+                mySeekBar.setProgress(savedInstanceState.getInt("progress"));
             }
-            playingbookindex = savedInstanceState.getInt("playingindex");
-            currentBookIndex = savedInstanceState.getInt("bookindex");
+//            currentBookIndex = savedInstanceState.getInt("bookindex");
             paused = savedInstanceState.getBoolean("paused");
 
-            mybooks=savedInstanceState.getParcelableArrayList("booklist");
+            //mybooks = savedInstanceState.getParcelableArrayList("booklist");
             buildViews();
-            Log.wtf("OKUR","Here are my books: "+mybooks);
+            Log.wtf("OKUR", "Here are my books: " + mybooks);
             //checking for old frags
-        }else{
-                getJSON(urlMain);
+        } else {
+            getJSON(urlMain);
         }
 
         searchbox = findViewById(R.id.editTextMain);
@@ -196,13 +263,6 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
             }
         });
 
-        final Button playbutton = findViewById(R.id.buttonPlay);
-        playbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                playCurrentBook();
-            }
-        });
 
         final Button stopbutton = findViewById(R.id.buttonStop);
         stopbutton.setOnClickListener(new View.OnClickListener() {
@@ -236,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
             public void onStopTrackingTouch(SeekBar seekBar) {
                 if (myServiceMediaBinder != null) {
                     //Log.wtf("msg",progress+"second of Length: "+currentBook.duration+" index:"+currentBookIndex);
-                    playCurrentBook();
+                    moveProgress();
                 }
 
             }
@@ -244,33 +304,6 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 
 
         getSupportActionBar().hide();
-//        //checking for old frags
-//        if (getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait) instanceof viewPagerFragment) {
-//            vpfrag = (viewPagerFragment) getSupportFragmentManager().findFragmentById(R.id.viewpagerFramePortrait);
-//            if (vpfrag.getBooks() != null) {
-//                mybooks = vpfrag.getBooks();
-//                Log.wtf("OKUR", "Found data " + mybooks);
-//                buildViews();
-//            } else {
-//                Log.wtf("OKUR", "Restored was null!");
-//                // do request
-//            }
-//
-//        } else if (getSupportFragmentManager().findFragmentById(R.id.selectFrameLand) instanceof BookChooserFragment) {
-//            bcfrag = (BookChooserFragment) getSupportFragmentManager().findFragmentById(R.id.selectFrameLand);
-//            if (bcfrag.getBooks() != null) {
-//                mybooks = bcfrag.getBooks();
-//                Log.wtf("OKUR", "Found data " + mybooks);
-//                buildViews();
-//            } else {
-//                Log.wtf("OKUR", "Restored was null!");
-//                // do request
-//            }
-//        } else {
-//            getJSON(urlMain);
-//
-//        }
-
 
     }
 
@@ -286,36 +319,75 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     }
 
     public void getCurrentBook(int id) {
-        currentBookIndex = mybooks.get(id).id;
-        currentBook = mybooks.get(id);
+
+        currentBook = getBookByID(id);
     }
 
 
     public void playCurrentBook() {
         mySeekBar.setVisibility(View.VISIBLE);
-        if (currentBookIndex == 0) getCurrentBook(0);
-
-        if (paused) {
-            myServiceMediaBinder.play(playingbookindex, mySeekBar.getProgress());
-            paused = false;
-        } else if (currentBookIndex != playingbookindex) {
-            myServiceMediaBinder.stop();
-            mySeekBar.setMax(currentBook.duration);
-            if (progressrestored) {
-                progressrestored = false;
+        if(playingBook!=currentBook && playingBook!=null) getBookByID(playingBook.id).progress=mySeekBar.getProgress(); //save progress of current before playing another
+        File file = new File(getFilesDir(), currentBook.id + "");
+        if (file.exists()) {
+            playingBook=currentBook;
+            mySeekBar.setMax(playingBook.duration);
+            playingBookProgress=currentBook.progress;
+            if (paused) {
+                resumePlaying();
             } else {
+                TextView np = findViewById(R.id.textViewNowPlaying);
+                np.setText("Playing: " + playingBook.title);
+                if (playingBookProgress > 0) {
+                    mySeekBar.setProgress(playingBookProgress);
+                    myServiceMediaBinder.play(file, playingBookProgress);
+                } else {
+                    myServiceMediaBinder.play((file));
+                    mySeekBar.setProgress(0);
+                }
+            }
+            Log.wtf("msg", "Playing book: " + currentBook.title + " Progress:" + mySeekBar.getProgress());
+            SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+            editor.putString("PlayingBook", gson.toJson(playingBook));
+            editor.apply();
+        } else {
+            Toast.makeText(this, "Book is not downloaded!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void resumePlaying() {
+        File file = new File(getFilesDir(), currentBook.id + "");
+        if (file.exists()) {
+            myServiceMediaBinder.play(file, mySeekBar.getProgress());
+            paused = false;
+        }
+    }
+
+    public void resumePlaying(int progress) {
+        TextView np = findViewById(R.id.textViewNowPlaying);
+        np.setText("Playing: " + currentBook.title);
+        np.setVisibility(View.VISIBLE);
+        mySeekBar.setVisibility(View.VISIBLE);
+        mySeekBar.setMax(currentBook.duration);
+        myServiceMediaBinder.play(playingBook.id, progress);
+        paused = false;
+        File file = new File(getFilesDir(), currentBook.id + "");
+        if (file.exists()) {
+            if (playingBookProgress > 0) {
+                if (playingBookProgress > 10) {
+                    playingBookProgress -= 10;
+                }
+                mySeekBar.setProgress(playingBookProgress);
+                myServiceMediaBinder.play(file, playingBookProgress);
+            } else {
+                myServiceMediaBinder.play((file));
                 mySeekBar.setProgress(0);
             }
-            TextView np = findViewById(R.id.textViewNowPlaying);
-            np.setText("Playing: " + currentBook.title);
-            myServiceMediaBinder.play(currentBookIndex);
-            playingbookindex = currentBookIndex;
-        } else {
-            myServiceMediaBinder.play(playingbookindex, mySeekBar.getProgress());
-
         }
-        Log.wtf("msg", "Playing book: " + currentBookIndex + " Progress:" + mySeekBar.getProgress());
+    }
 
+    public void moveProgress() {
+        resumePlaying();
+        //Log.wtf("DOIT","Playing "+mySeekBar.getProgress()+" of "+currentBook.duration);
     }
 
     public void stopCurrentBook() {
@@ -328,6 +400,18 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     public void pauseCurrentBook() {
         myServiceMediaBinder.pause();
         paused = true;
+        getBookByID(playingBook.id).progress=mySeekBar.getProgress();
+    }
+
+    public Book getBookByID(int id) {
+        Book currentBook;
+        for (int x = 0; x < mybooks.size(); x++) {
+            currentBook = mybooks.get(x);
+            if (currentBook.id == id) {
+                return currentBook;
+            }
+        }
+        return null;
     }
 
     public void getJSON(final String urltext) {
@@ -367,13 +451,19 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 
     @Override
     public void ChooseItem(int i) {
-        getCurrentBook(i);
-        detailsfrag.changeBook(mybooks.get(i));
+        detailsfrag = detailsfrag.newInstance(mybooks.get(i));
+        final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.deatilsFrameLand, detailsfrag);
+        transaction.commit();
+        currentBook=mybooks.get(i);
+        currentposition=i;
+        Log.wtf("msg", "Listview is on " + i);
     }
 
     @Override
     public void chooseBook(int id) {
         getCurrentBook(id);
+        currentposition=id;
         Log.wtf("msg", "Viewpager is on " + id);
     }
 
@@ -386,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     }
 
     public void makeViewPager(ArrayList<Book> books) {
-        viewPagerFragment vpf = viewPagerFragment.newInstance(books);
+        viewPagerFragment vpf = viewPagerFragment.newInstance(books, currentposition);
 //        viewPagerFragment vpf = viewPagerFragment.newInstance(books, 2);
         final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.viewpagerFramePortrait, vpf);
@@ -395,7 +485,8 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 
     public void makeListView(ArrayList<Book> books) {
         BookChooserFragment frag = BookChooserFragment.newInstance(books);
-        BookDetailsFragment details = BookDetailsFragment.newInstance(books.get(0));
+        if(currentBook==null) currentBook=mybooks.get(0);
+        BookDetailsFragment details = BookDetailsFragment.newInstance(currentBook);
         detailsfrag = details;
         final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.selectFrameLand, frag);
@@ -404,4 +495,54 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     }
 
 
+    @Override
+    public void downloadID(int id) {
+
+        //downloadTask.execute("https://kamorris.com/lab/audlib/download.php?id="+id, "books/book"+id+".mp3");
+        final String filename = Integer.toString(id);
+        final File file = new File(getFilesDir(), filename + "");
+        Toast.makeText(MainActivity.this, getBookByID(id).title + " downloading...", Toast.LENGTH_LONG).show();
+        downloadedfileid = id;
+        new Thread() {
+            @Override
+            public void run() {
+                URL url;
+                try {
+                    url = new URL("https://kamorris.com/lab/audlib/download.php?id=" + filename);
+                    InputStream is = url.openStream();
+                    DataInputStream dis = new DataInputStream(is);
+                    byte[] buffer = new byte[1024];
+                    int length;
+
+                    FileOutputStream fos = new FileOutputStream(file);
+                    while ((length = dis.read(buffer)) > 0) {
+                        fos.write(buffer, 0, length);
+                    }
+                    Message message = Message.obtain();
+                    message.obj = file;
+                    downloadDoneHandler.sendMessage(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
+
+    @Override
+    public void playID(int id) {
+        getCurrentBook(id);
+        playCurrentBook();
+    }
+
+    @Override
+    public void deleteID(int id) {
+        File file = new File(getFilesDir(), id + "");
+        if (currentBook.id == id) stopCurrentBook();
+        if (file.exists()) {
+            file.delete();
+            Toast.makeText(MainActivity.this, getBookByID(id).title + " deleted locally", Toast.LENGTH_SHORT).show();
+            buildViews();
+        }
+    }
 }
+
