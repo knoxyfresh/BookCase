@@ -12,6 +12,7 @@ public class Book implements Parcelable {
     int published;
     int duration;
     URL coverURL;
+    int progress=0;
 
     public Book(){}
 

@@ -67,4 +67,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewAuthor" />
 
+    <Button
+        android:id="@+id/btnDownload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:layout_marginBottom="15dp"
+        android:background="@android:drawable/stat_sys_download"
+        android:backgroundTint="#00130B0B"
+        android:text="DL"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/buttonPlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/ic_media_play"
+        app:layout_constraintBottom_toBottomOf="@+id/imageViewCover"
+        app:layout_constraintEnd_toEndOf="@+id/imageViewCover"
+        app:layout_constraintStart_toStartOf="@+id/imageViewCover"
+        app:layout_constraintTop_toTopOf="@+id/imageViewCover" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
