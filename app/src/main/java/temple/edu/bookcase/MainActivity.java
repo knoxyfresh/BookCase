@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     int playingBookProgress;
     //    SharedPreferences pref= PreferenceManager.getDefaultSharedPreferences(this);
     int downloadedfileid;
+    boolean playingrestored=false;
     String urlMain = "https://kamorris.com/lab/audlib/booksearch.php";
     String urlSearch = "https://kamorris.com/lab/audlib/booksearch.php?search=";
 
@@ -157,8 +158,8 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         super.onPause();
         SharedPreferences.Editor prefs = getPreferences(MODE_PRIVATE).edit();
         prefs.putString("Books", gson.toJson(mybooks));
-        if(playingBook!=null)
-        prefs.putString("playingBook", gson.toJson(playingBook));
+        Log.wtf("DATA","Saving Book Data "+gson.toJson(mybooks));
+        prefs.putInt("currentBookPosition",currentposition);
         prefs.apply();
 //        if(playingBook!=null){
 //            prefs.putString("PlayingBook",gson.toJson(currentBook));
@@ -178,6 +179,23 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
             buildViews();
         } else {
             getJSON(urlMain);
+        }
+        String bookstring = prefs.getString("playingBook","");
+        if(!bookstring.isEmpty()){
+            playingBook=gson.fromJson(bookstring, Book.class);
+            if(playingBook.progress>10) playingBook.progress-=10;
+            Log.wtf("data","Restoring previous played book! Progress "+playingBook.progress+"/"+playingBook.duration);
+            mySeekBar.setVisibility(View.VISIBLE);
+            mySeekBar.setMax(playingBook.duration);
+            mySeekBar.setProgress(playingBook.progress);
+            TextView np = findViewById(R.id.textViewNowPlaying);
+            np.setText("Playing: " + playingBook.title);
+            playingrestored=true;
+
+        }
+        int pos = prefs.getInt("currentBookPosition",-1);
+        if(pos!=-1){
+            currentposition=pos;
         }
 //        currentBookIndex = prefs.getInt("playingindex", -1);
 //        editor.putInt("playingindex", currentBookIndex);
@@ -205,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 //        outState.putInt("progress", mySeekBar.getProgress());
 //        outState.putBoolean("paused", paused);
         //outState.putParcelableArrayList("booklist",mybooks);
-        Log.wtf("OKUR", "SAVINGBOOKS data " + mybooks);
+//        Log.wtf("OKUR", "SAVINGBOOKS data " + mybooks);
         //outState.putParcelable("service",myServiceMediaBinder);
 
 
@@ -233,27 +251,27 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
         super.onCreate(savedInstanceState);
         mySeekBar = findViewById(R.id.seekBar);
         mySeekBar.setVisibility(View.INVISIBLE); //start off as hidden
-        if (savedInstanceState != null) {
-            //restore info about state
-            currentBook = savedInstanceState.getParcelable("book");
-            TextView np = findViewById(R.id.textViewNowPlaying);
-            playingBook = savedInstanceState.getParcelable("playingbook");
-            if (playingBook != null) {
-                np.setText("Playing: " + playingBook.title);
-                mySeekBar.setMax(playingBook.duration);
-                mySeekBar.setVisibility(View.VISIBLE);
-                mySeekBar.setProgress(savedInstanceState.getInt("progress"));
-            }
-//            currentBookIndex = savedInstanceState.getInt("bookindex");
-            paused = savedInstanceState.getBoolean("paused");
-
-            //mybooks = savedInstanceState.getParcelableArrayList("booklist");
-            buildViews();
-            Log.wtf("OKUR", "Here are my books: " + mybooks);
-            //checking for old frags
-        } else {
-            getJSON(urlMain);
-        }
+//        if (savedInstanceState != null) {
+//            //restore info about state
+//            currentBook = savedInstanceState.getParcelable("book");
+//            TextView np = findViewById(R.id.textViewNowPlaying);
+//            playingBook = savedInstanceState.getParcelable("playingbook");
+//            if (playingBook != null) {
+//                np.setText("Playing: " + playingBook.title);
+//                mySeekBar.setMax(playingBook.duration);
+//                mySeekBar.setVisibility(View.VISIBLE);
+//                mySeekBar.setProgress(savedInstanceState.getInt("progress"));
+//            }
+////            currentBookIndex = savedInstanceState.getInt("bookindex");
+//            paused = savedInstanceState.getBoolean("paused");
+//
+////            mybooks = savedInstanceState.getParcelableArrayList("booklist");
+//            buildViews();
+//            Log.wtf("OKUR", "Here are my books: " + mybooks);
+//            //checking for old frags
+//        } else {
+//            getJSON(urlMain);
+//        }
 
         searchbox = findViewById(R.id.editTextMain);
 
@@ -328,15 +346,21 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 
 
     public void playCurrentBook() {
+            Log.wtf("DATA","Current book to play should be restored: "+currentBook.title+"-"+playingBook.title);
+        if(playingrestored && currentBook.title==playingBook.title){
+            File filepl = new File(getFilesDir(), playingBook.id + "");
+            myServiceMediaBinder.play(filepl,playingBook.progress);
+            playingrestored=false;
+            return;
+        }
         mySeekBar.setVisibility(View.VISIBLE);
         if (playingBook != null)
-            playingBook.progress = mySeekBar.getProgress(); //save progress of current before playing another
+            saveProgress();
+
         File file = new File(getFilesDir(), currentBook.id + "");
-        if (mySeekBar.getProgress() != 0 && currentBook == playingBook) {
-            //resume current book
-            if (file.exists()) {
+        if (playingBook!=null && playingBook.progress != 0 && file.exists()) {
+            //resume current bookgson.toJson(mybooks)
                 myServiceMediaBinder.play(file, mySeekBar.getProgress());
-            }
         } else {
             //play
             playingBook = currentBook;
@@ -346,39 +370,39 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
             np.setText("Playing: " + playingBook.title);
 //            playingBookProgress=currentBook.progress;
             if (file.exists()) {
-                myServiceMediaBinder.play(file, playingBook.progress);
+                myServiceMediaBinder.play(file);
             } else {
-                myServiceMediaBinder.play(playingBook.id, playingBook.progress);
+                myServiceMediaBinder.play(playingBook.id);
             }
-                Log.wtf("msg", "Playing book: " + playingBook.title + " Progress:" + mySeekBar.getProgress());
+                Log.wtf("msg", "Playing book: " + playingBook.title + "ID: "+playingBook.id+" Progress:" + mySeekBar.getProgress());
 //            SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
 //            editor.putString("PlayingBook", gson.toJson(playingBook));
 //            editor.apply();
         }
     }
 
-    public void resumePlaying(int progress) {
-        TextView np = findViewById(R.id.textViewNowPlaying);
-        np.setText("Playing: " + currentBook.title);
-        np.setVisibility(View.VISIBLE);
-        mySeekBar.setVisibility(View.VISIBLE);
-        mySeekBar.setMax(currentBook.duration);
-        myServiceMediaBinder.play(playingBook.id, progress);
-        paused = false;
-        File file = new File(getFilesDir(), currentBook.id + "");
-        if (file.exists()) {
-            if (playingBookProgress > 0) {
-                if (playingBookProgress > 10) {
-                    playingBookProgress -= 10;
-                }
-                mySeekBar.setProgress(playingBookProgress);
-                myServiceMediaBinder.play(file, playingBookProgress);
-            } else {
-                myServiceMediaBinder.play((file));
-                mySeekBar.setProgress(0);
-            }
-        }
-    }
+//    public void resumePlaying() {
+//        TextView np = findViewById(R.id.textViewNowPlaying);
+//        np.setText("Playing: " + currentBook.title);
+//        np.setVisibility(View.VISIBLE);
+//        mySeekBar.setVisibility(View.VISIBLE);
+//        mySeekBar.setMax(currentBook.duration);
+//        myServiceMediaBinder.play(playingBook.id, progress);
+//        paused = false;
+//        File file = new File(getFilesDir(), currentBook.id + "");
+//        if (file.exists()) {
+//            if (playingBookProgress > 0) {
+//                if (playingBookProgress > 10) {
+//                    playingBookProgress -= 10;
+//                }
+//                mySeekBar.setProgress(playingBookProgress);
+//                myServiceMediaBinder.play(file, playingBookProgress);
+//            } else {
+//                myServiceMediaBinder.play((file));
+//                mySeekBar.setProgress(0);
+//            }
+//        }
+//    }
 
     public void moveProgress() {
         playCurrentBook();
@@ -388,6 +412,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     public void stopCurrentBook() {
         myServiceMediaBinder.stop();
         mySeekBar.setProgress(0);
+        playingBook.progress=0;
         TextView np = findViewById(R.id.textViewNowPlaying);
         np.setText("");
         mySeekBar.setVisibility(View.INVISIBLE);
@@ -397,7 +422,16 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
     public void pauseCurrentBook() {
         myServiceMediaBinder.pause();
         paused = true;
-        getBookByID(playingBook.id).progress = mySeekBar.getProgress();
+        saveProgress();
+    }
+
+    public void saveProgress(){
+        playingBook.progress = mySeekBar.getProgress();
+        SharedPreferences.Editor prefs = getPreferences(MODE_PRIVATE).edit();
+        File filepl = new File(getFilesDir(), playingBook.id + "");
+        if(playingBook!=null && filepl.exists())
+            prefs.putString("playingBook", gson.toJson(playingBook));
+        prefs.apply();
     }
 
     public Book getBookByID(int id) {
@@ -482,7 +516,7 @@ public class MainActivity extends AppCompatActivity implements BookChooserFragme
 
     public void makeListView(ArrayList<Book> books) {
         BookChooserFragment frag = BookChooserFragment.newInstance(books);
-        if (currentBook == null) currentBook = mybooks.get(0);
+        currentBook = mybooks.get(currentposition);
         BookDetailsFragment details = BookDetailsFragment.newInstance(currentBook);
         detailsfrag = details;
         final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
